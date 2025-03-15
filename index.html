@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text File Writer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #message {
+            color: green;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Text File Writer</h2>
+    <input type="text" id="fileContent" placeholder="Enter text to write to Main.txt">
+    <button onclick="simulateFileWrite()">Write to File</button>
+    <div id="message"></div>
+
+    <script>
+        function simulateFileWrite() {
+            const textInput = document.getElementById('fileContent');
+            const messageDiv = document.getElementById('message');
+
+            if (textInput.value.trim() === '') {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Please enter some text';
+                return;
+            }
+
+            // In a real-world scenario, this would be handled by a server-side script
+            console.log('Simulated file writing:', textInput.value);
+            
+            messageDiv.style.color = 'green';
+            messageDiv.textContent = 'Content would be written to Main.txt';
+            
+            // Clear input after "writing"
+            textInput.value = '';
+        }
+    </script>
+</body>
+</html>
