@@ -326,6 +326,83 @@
             70% { box-shadow: 0 0 0 6px rgba(0, 113, 227, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 113, 227, 0); }
         }
+
+        /* Toggle switch styling */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .toggle-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--text-primary);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--success-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .status-text {
+            font-size: 14px;
+            margin-left: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .status-offline {
+            color: var(--error-color);
+        }
+
+        .status-online {
+            color: var(--success-color);
+        }
     </style>
 </head>
 <body>
@@ -396,6 +473,43 @@
                     </span>
                 </button>
             </div>
+
+            <div class="section-divider"></div>
+
+            <h2 class="section-title">Game Status</h2>
+            
+            <div class="toggle-container">
+                <span class="toggle-label">Game Status:</span>
+                <div style="display: flex; align-items: center;">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="statusToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="statusText" class="status-text status-offline">Offline</span>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <span class="label">Current Status</span>
+                <input type="text" id="currentStatus" placeholder="Current status will appear here" readonly />
+            </div>
+            
+            <div class="button-group">
+                <button id="updateStatusButton" class="button primary-button">
+                    <span class="loading-indicator"></span>
+                    <span class="button-content">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Update</span>
+                    </span>
+                </button>
+                <button id="showStatusButton" class="button secondary-button">
+                    <span class="loading-indicator"></span>
+                    <span class="button-content">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Retrieve</span>
+                    </span>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -417,6 +531,11 @@
         const showPlaceButton = document.getElementById('showPlaceButton');
         const placeIdValueInput = document.getElementById('placeIdValue');
         const currentPlaceIdInput = document.getElementById('currentPlaceId');
+        const statusToggle = document.getElementById('statusToggle');
+        const statusText = document.getElementById('statusText');
+        const currentStatusInput = document.getElementById('currentStatus');
+        const updateStatusButton = document.getElementById('updateStatusButton');
+        const showStatusButton = document.getElementById('showStatusButton');
         const notification = document.getElementById('notification');
         const notificationText = document.getElementById('notificationText');
         const notificationIcon = document.getElementById('notificationIcon');
@@ -597,6 +716,79 @@
             }
         });
 
+        // Status Management
+        statusToggle.addEventListener('change', function() {
+            if (this.checked) {
+                statusText.textContent = 'Online';
+                statusText.className = 'status-text status-online';
+            } else {
+                statusText.textContent = 'Offline';
+                statusText.className = 'status-text status-offline';
+            }
+        });
+
+        updateStatusButton.addEventListener('click', async () => {
+            const isOnline = statusToggle.checked;
+            
+            setButtonLoading(updateStatusButton, true);
+            
+            try {
+                // Get current data first
+                const currentData = await retrieveData();
+                
+                // Update or add the status property
+                const updatedData = {
+                    ...currentData,
+                    status: isOnline
+                };
+                
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+                
+                if (!response.ok) throw new Error('Failed to update');
+                
+                await response.json();
+                showNotification('Status updated successfully!');
+                currentStatusInput.value = isOnline ? 'True' : 'False';
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Failed to update status.', true);
+            } finally {
+                setButtonLoading(updateStatusButton, false);
+            }
+        });
+
+        showStatusButton.addEventListener('click', async () => {
+            setButtonLoading(showStatusButton, true);
+            
+            try {
+                const data = await retrieveData();
+                
+                // Handle the status data
+                const status = data.status !== undefined ? data.status : false;
+                const statusText = status ? 'True' : 'False';
+                
+                // Update the toggle to match the current status
+                statusToggle.checked = status;
+                document.getElementById('statusText').textContent = status ? 'Online' : 'Offline';
+                document.getElementById('statusText').className = status ? 'status-text status-online' : 'status-text status-offline';
+                
+                // Animate the text display
+                applyTypingEffect(currentStatusInput, statusText);
+                showNotification('Status retrieved successfully!');
+                
+            } catch (error) {
+                currentStatusInput.value = 'Error retrieving data';
+            } finally {
+                setButtonLoading(showStatusButton, false);
+            }
+        });
+
         // Auto-focus on page load
         window.addEventListener('load', () => {
             textValueInput.focus();
@@ -604,6 +796,7 @@
             // Retrieve data on load
             showButton.click();
             showPlaceButton.click();
+            showStatusButton.click();
         });
         
         // Allow pressing Enter to submit
