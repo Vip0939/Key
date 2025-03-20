@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Key Manager V1</title>
+    <title>Key Manager V2</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -74,6 +74,7 @@
             width: 100%;
             flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
@@ -87,6 +88,7 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             border: 1px solid var(--border-color);
             width: 100%;
+            max-width: 500px;
         }
 
         .card:hover {
@@ -276,6 +278,7 @@
             color: var(--text-secondary);
             font-size: 14px;
             border-top: 1px solid var(--border-color);
+            width: 100%;
         }
 
         .highlight {
@@ -403,29 +406,197 @@
         .status-online {
             color: var(--success-color);
         }
+
+        /* Modal styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-header {
+            position: relative;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            background: linear-gradient(90deg, #0071e3, #40c8e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Dashboard styles */
+        .dashboard-card {
+            cursor: pointer;
+            text-align: center;
+            padding: 32px 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .dashboard-icon {
+            font-size: 36px;
+            margin-bottom: 16px;
+            background: linear-gradient(45deg, #0071e3, #40c8e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Login overlay */
+        #loginOverlay {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+            z-index: 2000;
+        }
+
+        #loginCard {
+            display: block;
+        }
+
+        #mainContent {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <div class="logo">Key Manager V1</div>
+            <div class="logo">Key Manager V2</div>
         </div>
     </header>
     
-    <div class="container">
-        <div class="card">
-            <h1>Manage Your Key</h1>
-            
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="overlay active">
+        <div class="modal" id="loginCard">
+            <div class="modal-header">
+                <h2 class="modal-title">Authentication Required</h2>
+            </div>
+            <div class="input-group">
+                <span class="label">Enter Password</span>
+                <input type="password" id="passwordInput" placeholder="Enter password to continue" />
+            </div>
+            <div class="button-group">
+                <button id="loginButton" class="button primary-button">
+                    <span class="loading-indicator"></span>
+                    <span class="button-content">
+                        <i class="fas fa-lock-open"></i>
+                        <span>Login</span>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="mainContent">
+        <div class="container">
+            <div class="card">
+                <h1>Key Manager Dashboard</h1>
+                <div class="grid-container">
+                    <div class="card dashboard-card" id="openKeyModal">
+                        <div class="dashboard-icon"><i class="fas fa-key"></i></div>
+                        <div class="dashboard-title">Key Management</div>
+                        <div class="dashboard-desc">Manage your API keys</div>
+                    </div>
+                    <div class="card dashboard-card" id="openPlaceModal">
+                        <div class="dashboard-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="dashboard-title">Place ID</div>
+                        <div class="dashboard-desc">Update location IDs</div>
+                    </div>
+                    <div class="card dashboard-card" id="openStatusModal">
+                        <div class="dashboard-icon"><i class="fas fa-toggle-on"></i></div>
+                        <div class="dashboard-title">Game Status</div>
+                        <div class="dashboard-desc">Control online status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Modal -->
+    <div id="keyModal" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Key Management</h2>
+                <button class="modal-close" id="closeKeyModal"><i class="fas fa-times"></i></button>
+            </div>
             <div class="input-group">
                 <span class="label">New Key Value</span>
                 <input type="text" id="textValue" placeholder="Enter new key (Recommended 64-BIT)" />
             </div>
-            
             <div class="input-group">
                 <span class="label">Current Key</span>
                 <input type="text" id="currentText" placeholder="Current key will appear here" readonly />
             </div>
-            
             <div class="button-group">
                 <button id="updateButton" class="button primary-button">
                     <span class="loading-indicator"></span>
@@ -442,21 +613,24 @@
                     </span>
                 </button>
             </div>
-
-            <div class="section-divider"></div>
-
-            <h2 class="section-title">Place ID</h2>
-            
+        </div>
+    </div>
+    
+    <!-- Place ID Modal -->
+    <div id="placeModal" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Place ID Management</h2>
+                <button class="modal-close" id="closePlaceModal"><i class="fas fa-times"></i></button>
+            </div>
             <div class="input-group">
                 <span class="label">New Place ID</span>
                 <input type="text" id="placeIdValue" placeholder="Enter new place ID (Recommended 64-BIT)" />
             </div>
-            
             <div class="input-group">
                 <span class="label">Current Place ID</span>
                 <input type="text" id="currentPlaceId" placeholder="Current place ID will appear here" readonly />
             </div>
-            
             <div class="button-group">
                 <button id="updatePlaceButton" class="button primary-button">
                     <span class="loading-indicator"></span>
@@ -473,11 +647,16 @@
                     </span>
                 </button>
             </div>
-
-            <div class="section-divider"></div>
-
-            <h2 class="section-title">Game Status</h2>
-            
+        </div>
+    </div>
+    
+    <!-- Status Modal -->
+    <div id="statusModal" class="overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Game Status Management</h2>
+                <button class="modal-close" id="closeStatusModal"><i class="fas fa-times"></i></button>
+            </div>
             <div class="toggle-container">
                 <span class="toggle-label">Game Status:</span>
                 <div style="display: flex; align-items: center;">
@@ -488,12 +667,10 @@
                     <span id="statusText" class="status-text status-offline">Offline</span>
                 </div>
             </div>
-            
             <div class="input-group">
                 <span class="label">Current Status</span>
                 <input type="text" id="currentStatus" placeholder="Current status will appear here" readonly />
             </div>
-            
             <div class="button-group">
                 <button id="updateStatusButton" class="button primary-button">
                     <span class="loading-indicator"></span>
@@ -523,6 +700,122 @@
     </div>
 
     <script>
+        const apiUrl = 'https://jsonblob.com/api/1350493343955738624'; // JSONBlob API URL
+        
+        // Password protection
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginButton = document.getElementById('loginButton');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginOverlay = document.getElementById('loginOverlay');
+            const mainContent = document.getElementById('mainContent');
+            
+            // SHA-256 hash of "0216" (This is a simple client-side encryption, for proper security you'd use server-side validation)
+            const correctPasswordHash = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"; // This is actually a SHA-256 hash of "123"
+            
+            // To make it less obvious to anyone inspecting the code
+            const obfuscatedCorrectHash = atob("YjJmZjFkZTIxMDUzZDg3ZDRlMjcwNzM4NTU0NTNhYTAwMzQ5ZTQzYmEwZjUyYzZiMjEwN2JmMTRiOWNlZDdhNQ=="); // SHA-256 hash of "0216"
+            
+            loginButton.addEventListener('click', function() {
+                setButtonLoading(loginButton, true);
+                
+                setTimeout(function() {
+                    const enteredPassword = passwordInput.value;
+                    // Hash the entered password for comparison (client-side only)
+                    hashPassword(enteredPassword).then(hash => {
+                        if (hash === obfuscatedCorrectHash) {
+                            loginOverlay.classList.remove('active');
+                            setTimeout(() => {
+                                loginOverlay.style.display = 'none';
+                                mainContent.style.display = 'block';
+                                // Retrieve data after successful login
+                                retrieveAllData();
+                            }, 300);
+                            showNotification('Login successful!');
+                        } else {
+                            showNotification('Incorrect password. Please try again.', true);
+                            passwordInput.value = '';
+                            passwordInput.focus();
+                        }
+                        setButtonLoading(loginButton, false);
+                    });
+                }, 1000); // Simulate server check
+            });
+            
+            // Password hash function (SHA-256)
+            async function hashPassword(password) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+            
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginButton.click();
+                }
+            });
+        });
+
+        // Modal controls
+        const openKeyModal = document.getElementById('openKeyModal');
+        const closeKeyModal = document.getElementById('closeKeyModal');
+        const keyModal = document.getElementById('keyModal');
+        
+        const openPlaceModal = document.getElementById('openPlaceModal');
+        const closePlaceModal = document.getElementById('closePlaceModal');
+        const placeModal = document.getElementById('placeModal');
+        
+        const openStatusModal = document.getElementById('openStatusModal');
+        const closeStatusModal = document.getElementById('closeStatusModal');
+        const statusModal = document.getElementById('statusModal');
+        
+        // Key Modal
+        openKeyModal.addEventListener('click', () => {
+            keyModal.classList.add('active');
+            document.getElementById('textValue').focus();
+            document.getElementById('showButton').click();
+        });
+        
+        closeKeyModal.addEventListener('click', () => {
+            keyModal.classList.remove('active');
+        });
+        
+        // Place Modal
+        openPlaceModal.addEventListener('click', () => {
+            placeModal.classList.add('active');
+            document.getElementById('placeIdValue').focus();
+            document.getElementById('showPlaceButton').click();
+        });
+        
+        closePlaceModal.addEventListener('click', () => {
+            placeModal.classList.remove('active');
+        });
+        
+        // Status Modal
+        openStatusModal.addEventListener('click', () => {
+            statusModal.classList.add('active');
+            document.getElementById('showStatusButton').click();
+        });
+        
+        closeStatusModal.addEventListener('click', () => {
+            statusModal.classList.remove('active');
+        });
+        
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target === keyModal) keyModal.classList.remove('active');
+            if (event.target === placeModal) placeModal.classList.remove('active');
+            if (event.target === statusModal) statusModal.classList.remove('active');
+        });
+
+        // Existing functionality
+        function retrieveAllData() {
+            document.getElementById('showButton').click();
+            document.getElementById('showPlaceButton').click();
+            document.getElementById('showStatusButton').click();
+        }
+        
         const updateButton = document.getElementById('updateButton');
         const showButton = document.getElementById('showButton');
         const textValueInput = document.getElementById('textValue');
@@ -539,7 +832,6 @@
         const notification = document.getElementById('notification');
         const notificationText = document.getElementById('notificationText');
         const notificationIcon = document.getElementById('notificationIcon');
-        const apiUrl = 'https://jsonblob.com/api/1350493343955738624'; // JSONBlob API URL
 
         function showNotification(message, isError = false) {
             notification.className = isError ? 'notification error show' : 'notification show';
@@ -621,196 +913,3 @@
                     },
                     body: JSON.stringify(updatedData)
                 });
-                
-                if (!response.ok) throw new Error('Failed to update');
-                
-                await response.json();
-                showNotification('Key value updated successfully!');
-                currentTextInput.value = newTextValue;
-                textValueInput.value = '';
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Failed to update key value.', true);
-            } finally {
-                setButtonLoading(updateButton, false);
-            }
-        });
-
-        showButton.addEventListener('click', async () => {
-            setButtonLoading(showButton, true);
-            
-            try {
-                const data = await retrieveData();
-                
-                // Animate the text display with a typing effect
-                const text = data.text || 'No key found';
-                applyTypingEffect(currentTextInput, text);
-                showNotification('Key retrieved successfully!');
-                
-            } catch (error) {
-                currentTextInput.value = 'Error retrieving data';
-            } finally {
-                setButtonLoading(showButton, false);
-            }
-        });
-
-        // Place ID Management
-        updatePlaceButton.addEventListener('click', async () => {
-            const newPlaceIdValue = placeIdValueInput.value.trim();
-            
-            if (!newPlaceIdValue) {
-                showNotification('Please enter a place ID first', true);
-                placeIdValueInput.focus();
-                return;
-            }
-            
-            setButtonLoading(updatePlaceButton, true);
-            
-            try {
-                // Get current data first
-                const currentData = await retrieveData();
-                
-                // Update or add the placeId property
-                const updatedData = {
-                    ...currentData,
-                    placeId: newPlaceIdValue
-                };
-                
-                const response = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updatedData)
-                });
-                
-                if (!response.ok) throw new Error('Failed to update');
-                
-                await response.json();
-                showNotification('Place ID updated successfully!');
-                currentPlaceIdInput.value = newPlaceIdValue;
-                placeIdValueInput.value = '';
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Failed to update place ID.', true);
-            } finally {
-                setButtonLoading(updatePlaceButton, false);
-            }
-        });
-
-        showPlaceButton.addEventListener('click', async () => {
-            setButtonLoading(showPlaceButton, true);
-            
-            try {
-                const data = await retrieveData();
-                
-                // Animate the text display with a typing effect
-                const placeId = data.placeId || 'No place ID found';
-                applyTypingEffect(currentPlaceIdInput, placeId);
-                showNotification('Place ID retrieved successfully!');
-                
-            } catch (error) {
-                currentPlaceIdInput.value = 'Error retrieving data';
-            } finally {
-                setButtonLoading(showPlaceButton, false);
-            }
-        });
-
-        // Status Management
-        statusToggle.addEventListener('change', function() {
-            if (this.checked) {
-                statusText.textContent = 'Online';
-                statusText.className = 'status-text status-online';
-            } else {
-                statusText.textContent = 'Offline';
-                statusText.className = 'status-text status-offline';
-            }
-        });
-
-        updateStatusButton.addEventListener('click', async () => {
-            const isOnline = statusToggle.checked;
-            
-            setButtonLoading(updateStatusButton, true);
-            
-            try {
-                // Get current data first
-                const currentData = await retrieveData();
-                
-                // Update or add the status property
-                const updatedData = {
-                    ...currentData,
-                    status: isOnline
-                };
-                
-                const response = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updatedData)
-                });
-                
-                if (!response.ok) throw new Error('Failed to update');
-                
-                await response.json();
-                showNotification('Status updated successfully!');
-                currentStatusInput.value = isOnline ? 'True' : 'False';
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Failed to update status.', true);
-            } finally {
-                setButtonLoading(updateStatusButton, false);
-            }
-        });
-
-        showStatusButton.addEventListener('click', async () => {
-            setButtonLoading(showStatusButton, true);
-            
-            try {
-                const data = await retrieveData();
-                
-                // Handle the status data
-                const status = data.status !== undefined ? data.status : false;
-                const statusText = status ? 'True' : 'False';
-                
-                // Update the toggle to match the current status
-                statusToggle.checked = status;
-                document.getElementById('statusText').textContent = status ? 'Online' : 'Offline';
-                document.getElementById('statusText').className = status ? 'status-text status-online' : 'status-text status-offline';
-                
-                // Animate the text display
-                applyTypingEffect(currentStatusInput, statusText);
-                showNotification('Status retrieved successfully!');
-                
-            } catch (error) {
-                currentStatusInput.value = 'Error retrieving data';
-            } finally {
-                setButtonLoading(showStatusButton, false);
-            }
-        });
-
-        // Auto-focus on page load
-        window.addEventListener('load', () => {
-            textValueInput.focus();
-            
-            // Retrieve data on load
-            showButton.click();
-            showPlaceButton.click();
-            showStatusButton.click();
-        });
-        
-        // Allow pressing Enter to submit
-        textValueInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                updateButton.click();
-            }
-        });
-        
-        placeIdValueInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                updatePlaceButton.click();
-            }
-        });
-    </script>
-</body>
-</html>
